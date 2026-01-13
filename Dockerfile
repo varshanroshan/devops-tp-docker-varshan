@@ -3,15 +3,18 @@ FROM nginx:1.29-alpine
 LABEL maintainer="TP DevOps"
 LABEL description="Application DevOps containerisée avec Nginx"
 
-# Installer wget pour le HEALTHCHECK (sans cache)
 RUN apk add --no-cache wget
 
-# Copier la config Nginx et le contenu web
+# Config nginx (global + vhost)
+COPY nginx/nginx-global.conf /etc/nginx/nginx.conf
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Site
 COPY src/ /usr/share/nginx/html/
 
-# Permissions minimales + exécution en non-root
-RUN chown -R nginx:nginx /usr/share/nginx/html /etc/nginx/conf.d \
+# Préparer dossiers nécessaires pour nginx non-root
+RUN mkdir -p /tmp/client_temp /tmp/proxy_temp /tmp/fastcgi_temp /tmp/uwsgi_temp /tmp/scgi_temp \
+  && chown -R nginx:nginx /tmp /usr/share/nginx/html /etc/nginx/conf.d /var/cache/nginx /var/run /var/log/nginx \
   && chmod -R 755 /usr/share/nginx/html
 
 USER nginx
